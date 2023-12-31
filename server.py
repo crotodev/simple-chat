@@ -1,5 +1,8 @@
 import socket
 import threading
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 HOST = "127.0.0.1"
 PORT = 9090
@@ -13,19 +16,30 @@ clients: list[socket.socket] = []
 nicknames: list[bytes] = []
 
 
-def broadcast(message) -> None:
+def broadcast(message: str) -> None:
+    """
+    Sends a message to all connected clients.
+
+    :param message: The message to be sent to all clients.
+    """
     for client in clients:
         client.send(message)
 
 
 def handle(client: socket) -> None:
+    """
+    Handles a single client connection, receiving messages and broadcasting them.
+
+    :param client: The client socket object.
+    """
     while True:
         try:
-            message = client.recv(1024)
-            print(f"{nicknames[clients.index(client)]} says {message}")
+            message: bytes = client.recv(1024)
+            logging.info(f"{nicknames[clients.index(client)]} says {message}")
             broadcast(message)
-        except:
-            index = client.index(client)
+        except Exception as e:
+            logging.error(e)
+            index = clients.index(client)
             clients.remove(client)
             client.close()
             nickname = nicknames[index]
@@ -34,9 +48,12 @@ def handle(client: socket) -> None:
 
 
 def receive() -> None:
+    """
+    Accepts new connections from clients and starts a new thread to handle each client.
+    """
     while True:
         client, address = server.accept()
-        print(f"Connected with {str(address)}")
+        logging.info(f"Connected with {str(address)}")
 
         client.send("Nick".encode("utf-8"))
         nickname = client.recv(1024)
@@ -44,7 +61,7 @@ def receive() -> None:
         clients.append(client)
         nicknames.append(nickname)
 
-        print(f"Client nickname is {nickname}")
+        logging.info(f"Client nickname is {nickname}")
         broadcast(f"{nickname} joined.\n".encode("utf-8"))
         client.send("Connected to server.\n".encode("utf-8"))
 
@@ -52,5 +69,5 @@ def receive() -> None:
         thread.start()
 
 
-print("Server started")
+logging.info("Server started")
 receive()

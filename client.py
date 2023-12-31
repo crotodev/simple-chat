@@ -8,7 +8,16 @@ PORT = 9090
 
 
 class Client:
-    def __init__(self, host, port) -> None:
+    """
+    A client for handling chat in a chat application using sockets and tkinter for GUI.
+    """
+    def __init__(self, host: str, port: int) -> None:
+        """
+        Initializes the client with the given host and port, sets up the GUI, and starts the threads for handling GUI and receiving messages.
+
+        :param host: The hostname or IP address of the server.
+        :param port: The port number of the server.
+        """
         self.win: tkinter.Tk = None
         self.chat_label: tkinter.Label = None
         self.send_button: tkinter.Button = None
@@ -34,6 +43,9 @@ class Client:
         receive_thread.start()
 
     def gui_loop(self) -> None:
+        """
+        Sets up the GUI for the chat client. It creates a window with chat history, message input, and send button.
+        """
         self.win = tkinter.Tk()
         self.win.configure(bg="lightgray")
 
@@ -62,17 +74,26 @@ class Client:
         self.win.mainloop()
 
     def write(self) -> None:
+        """
+        Sends the message in the input area to the server and clears the input area.
+        """
         message = f"{self.nickname}: {self.input_area.get('1.0', 'end')}"
         self.sock.send(message.encode("utf-8"))
         self.input_area.delete("1.0", "end")
 
     def stop(self) -> None:
+        """
+        Stops the client by ending the main loop, closing the socket, and destroying the GUI window.
+        """
         self.running = False
         self.win.destroy()
         self.sock.close()
         exit(0)
 
     def receive(self) -> None:
+        """
+        Continuously listens for messages from the server and updates the chat history in the GUI.
+        """
         while self.running:
             try:
                 message = self.sock.recv(1024)
@@ -86,8 +107,8 @@ class Client:
                         self.text_area.config(state="disabled")
             except ConnectionAbortedError:
                 break
-            except:
-                print("Error")
+            except Exception as e:
+                print(f"Found {e}")
                 self.sock.close()
                 break
 
