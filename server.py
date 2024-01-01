@@ -55,7 +55,7 @@ def receive() -> None:
         client, address = server.accept()
         logging.info(f"Connected with {str(address)}")
 
-        client.send("Nick".encode("utf-8"))
+        client.send("NICK".encode("utf-8"))
         nickname = client.recv(1024)
 
         clients.append(client)
